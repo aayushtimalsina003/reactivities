@@ -11,37 +11,12 @@ import { observer } from "mobx-react-lite";
 
 function App() {
   const { activityStore } = useStore();
-
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [selectedActivity, setSelectedActivity] = useState<
-    Activity | undefined
-  >(undefined); 
-  const [editMode, setEditMode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     activityStore.loadActivities();
   }, [activityStore]);
-
-  function handleSelectActivity(id: string) {
-    setSelectedActivity(activities.find((x) => x.id === id));
-  }
-  function handleCancelSelectActivity() {
-    setSelectedActivity(undefined);
-  }
-
-  function handleFormOpen(id?: string) {
-    if (id) {
-      handleSelectActivity(id);
-    } else {
-      handleCancelSelectActivity();
-    }
-    setEditMode(true);
-  }
-
-  function handleFormClose() {
-    setEditMode(false);
-  }
 
   function handleCreateOrEditActivity(activity: Activity) {
     setSubmitting(true);
@@ -51,16 +26,12 @@ function App() {
           ...activities.filter((x) => x.id !== activity.id),
           activity,
         ]);
-        setSelectedActivity(activity);
-        setEditMode(false);
         setSubmitting(false);
       });
     } else {
       activity.id = uuid();
       agent.Activities.create(activity).then(() => {
         setActivities([...activities, activity]);
-        setSelectedActivity(activity);
-        setEditMode(false);
         setSubmitting(false);
       });
     }
@@ -80,16 +51,10 @@ function App() {
 
   return (
     <>
-      <NavBar openForm={handleFormOpen} />
+      <NavBar />
       <Container style={{ marginTop: "7em" }}>
         <ActivityDashboard
           activities={activityStore.activities}
-          selectedActivity={selectedActivity}
-          selectActivity={handleSelectActivity}
-          cancelSelectActivity={handleCancelSelectActivity}
-          editMode={editMode}
-          openForm={handleFormOpen}
-          closeForm={handleFormClose}
           createOrEdit={handleCreateOrEditActivity}
           deleteActivity={handleDeleteActivity}
           submitting={submitting}
