@@ -1,6 +1,5 @@
 import { Button, Item, Label, Segment } from "semantic-ui-react";
 import { Activity } from "../../../app/models/activity";
-import LoadingComponent from "../../../app/layout/LoadingComponent";
 import { SyntheticEvent, useState } from "react";
 
 interface Props {
@@ -21,7 +20,7 @@ export default function ActivityList({
   function handleActivityDelete(
     e: SyntheticEvent<HTMLButtonElement>,
     id: string
-  ) {
+  ) { 
     setTarget(e.currentTarget.name);
     deleteActivity(id);
   }
