@@ -1,7 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./app/layout/styles.css";
 import "semantic-ui-css/semantic.min.css";
+import "react-calendar/dist/Calendar.css";
+import "./app/layout/styles.css";
 import { store, StoreContext } from "./stores/store";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./app/routes/Routes";
