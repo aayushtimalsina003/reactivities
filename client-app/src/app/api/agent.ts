@@ -3,6 +3,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { Activity } from "../models/activity";
 import { toast } from "react-toastify";
 import { router } from "../routes/Routes";
+import { store } from "../../stores/store";
 
 const sleep = (delay: number) => {
   return new Promise((reslove) => {
@@ -18,9 +19,15 @@ axios.interceptors.response.use(
     return response;
   },
   (error: AxiosError) => {
-    const { data, status } = error.response as AxiosResponse;
+    const { data, status, config } = error.response as AxiosResponse;
     switch (status) {
       case 400:
+        if (
+          config.method === "get" &&
+          Object.prototype.hasOwnProperty.call(data, "id")
+        ) {
+          router.navigate("/not-found");
+        }
         if (data.errors) {
           const modelStateErrors = [];
           for (const key in data.errors) {
@@ -43,8 +50,8 @@ axios.interceptors.response.use(
         router.navigate("/not-found");
         break;
       case 500:
-        toast.error("server error");
-        break;
+        store.commonStore.setServerError(data);
+        router.navigate("/server-error");
     }
     return Promise.reject(error);
   }
