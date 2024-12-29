@@ -1,3 +1,4 @@
+using System.Diagnostics.Eventing.Reader;
 using System.Net;
 using System.Text.Json;
 using Application.Core;
