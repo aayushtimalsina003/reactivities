@@ -1,7 +1,7 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import agent from "../app/api/agent";
 import { v4 as uuid } from "uuid";
-import { Activity } from "../app/models/activity";
+import { Activity, ActivityFormValues } from "../app/models/activity";
 import { format } from "date-fns";
 import { store } from "./store";
 import { Profile } from "../app/models/profiles";
@@ -96,44 +96,40 @@ export default class ActivityStore {
     this.loadingInitial = state;
   };
 
-  createActivity = async (activity: Activity) => {
-    this.loading = true;
+  createActivity = async (activity: ActivityFormValues) => {
+    const user = store.userStore.user;
+    const attendee = new Profile(user!);
     activity.id = uuid();
     try {
       await agent.Activities.create(activity);
+      const newActivity = new Activity(activity);
+      newActivity.hostUsername = user!.username;
+      newActivity.attendees = [attendee];
+      this.setActivity(newActivity);
       runInAction(() => {
-        this.activityRegistry.set(activity.id, activity);
-        this.selectedActivity = activity;
-        this.editMode = false;
-        this.loading = false;
+        this.selectedActivity = newActivity;
       });
     } catch (error) {
       console.log(error);
-      runInAction(() => {
-        this.loading = false;
-      });
     }
   };
 
-  updateActivity = async (activity: Activity) => {
+  updateActivity = async (activity: ActivityFormValues) => {
     this.loading = true;
     try {
       await agent.Activities.update(activity);
       runInAction(() => {
-        // // const index = this.activities.findIndex(a => a.id === activity.id);
-        // // if (index !== -1) {
-        // //     this.activities[index] = activity; // Update in place
-        // }
-        this.activityRegistry.set(activity.id, activity);
-        this.selectedActivity = activity;
-        this.editMode = false;
-        this.loading = false;
+        if (activity.id) {
+          const updatedActivity = {
+            ...this.getActivity(activity.id),
+            ...activity,
+          };
+          this.activityRegistry.set(activity.id, updatedActivity as Activity);
+          this.selectedActivity = updatedActivity as Activity;
+        }
       });
     } catch (error) {
       console.log(error);
-      runInAction(() => {
-        this.loading = false;
-      });
     }
   };
 
@@ -162,7 +158,7 @@ export default class ActivityStore {
         if (this.selectedActivity?.isGoing) {
           this.selectedActivity.attendees =
             this.selectedActivity.attendees?.filter(
-              a => a.username !== user?.username
+              (a) => a.username !== user?.username
             );
           this.selectedActivity.isGoing = false;
         } else {
